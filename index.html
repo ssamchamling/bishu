@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rose Day Surprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fff0f3;      
+            --env-color: #c9184a;     
+            --env-inside: #ff4d6d;    
+            --letter-bg: #ffffff;     
+            --seal-color: #a4133c;
+            --accent-gold: #d4af37;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            background: linear-gradient(to bottom right, #ffe4e1, #ffd6e8);
+            text-align: center;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Logic to fix the "Stuck" issue: ensuring sections handle display properly */
+        section { 
+            display: none; 
+            padding: 20px; 
+            width: 100%; 
+            height: 100vh; 
+            box-sizing: border-box; 
+            position: absolute; 
+            top: 0; left: 0;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        section.active { display: flex; }
+
+        .back-btn {
+            position: absolute;
+            top: 20px; left: 20px;
+            background: white;
+            border: 1px solid var(--env-color);
+            color: var(--env-color);
+            padding: 8px 15px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        h1 { font-family: 'Great Vibes', cursive; color: crimson; font-size: 3.5rem; margin: 10px; }
+        h2 { font-family: 'Playfair Display', serif; color: var(--env-color); font-style: italic; }
+
+        .main-btn {
+            padding: 12px 35px;
+            font-size: 16px;
+            text-transform: uppercase;
+            border: none;
+            background: crimson;
+            color: white;
+            cursor: pointer;
+            margin: 10px;
+            z-index: 10;
+        }
+
+        .bouquet-img { max-width: 220px; height: auto; margin-bottom: 20px; border: 5px solid white; }
+
+        /* --- ENVELOPE ARCHITECTURE --- */
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            width: 300px;
+            height: 200px;
+            margin-top: 40px;
+        }
+
+        .envelope {
+            position: relative;
+            width: 100%; height: 100%;
+            background-color: var(--env-color);
+            z-index: 4; /* Covers the letter */
+        }
+
+        .envelope::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; z-index: 6;
+            border-top: 120px solid var(--env-color);
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            transform-origin: top;
+            transition: transform 0.6s ease;
+        }
+
+        .seal {
+            position: absolute;
+            top: 95px; left: 50%;
+            transform: translateX(-50%);
+            width: 45px; height: 45px;
+            background-color: var(--seal-color);
+            border-radius: 50%;
+            z-index: 7;
+            border: 1px solid var(--accent-gold);
+            transition: opacity 0.3s;
+        }
+
+        .letter {
+            position: absolute;
+            top: 10px; left: 10px;
+            width: 280px;
+            height: 160px;
+            background: white;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            
+            /* Hidden State */
+            z-index: 1;
+            opacity: 0;
+            transform: translateY(0);
+            transition: transform 0.8s ease, opacity 0.3s ease, z-index 0s 0.4s;
+        }
+
+        /* --- OPEN STATE --- */
+        .open .envelope::before { transform: rotateX(180deg); z-index: 2; }
+        .open .seal { opacity: 0; pointer-events: none; }
+        .open .letter { 
+            opacity: 1;
+            z-index: 10;
+            transform: translateY(-220px); 
+            height: auto;
+            max-height: 350px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <section id="welcome" class="active">
+        <h1>Yoooo Bishu!</h1>
+        <p>A garden of surprises awaits you</p>
+        <button class="main-btn" onclick="navigateTo('roses')">Enter</button>
+    </section>
+
+    <section id="roses">
+        <button class="back-btn" onclick="navigateTo('welcome')">Back</button>
+        <h2>Select a bouquet</h2>
+        <button class="main-btn" onclick="chooseRose('Red')">Red Bouquet</button>
+        <button class="main-btn" onclick="chooseRose('Yellow')">Yellow Bouquet</button>
+        <button class="main-btn" onclick="chooseRose('Pink')">Pink Bouquet</button>
+    </section>
+
+    <section id="bouquetSection">
+        <button class="back-btn" onclick="navigateTo('roses')">Back</button>
+        <h2 id="roseTitle">For You</h2>
+        
+        <img id="bouquetDisplay" class="bouquet-img" src="" alt="">
+        
+        <div class="envelope-wrapper" id="envWrapper" onclick="openEnvelope()">
+            <div class="letter" id="letterBody"></div>
+            <div class="seal"></div>
+            <div class="envelope"></div>
+        </div>
+
+        <button id="navThankYou" class="main-btn hidden" style="margin-top: 250px;" onclick="navigateTo('thankyou')">Continue</button>
+    </section>
+
+    <section id="thankyou">
+        <h1>Thank You</h1>
+        <p>Hope this made you happy</p>
+        <button class="main-btn" onclick="location.reload()">Restart</button>
+    </section>
+
+    <script>
+        // Use a more robust navigation function
+        function navigateTo(sectionId) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(s => s.classList.remove('active'));
+            
+            const target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('active');
+            }
+
+            // Reset envelope state if going back
+            if(sectionId === 'roses') {
+                document.getElementById('envWrapper').classList.remove('open');
+                document.getElementById('navThankYou').classList.add('hidden');
+            }
+        }
+
+        const roseData = {
+            'Red': { 
+                img: 'download.jpg', 
+                text: "Dear Bishu,<br><br>On this Rose Day, I give you this red rose as a symbol of my love for you—a love that grows deeper and stronger every single day. I admire your strength, your kindness, and the way you light up every room with your presence. You inspire me to be a better person, and your heart reminds me of what it truly means to care for someone deeply.<br><br>I trust you completely and respect the bond we share. May this rose remind you that my heart is always with you, and that our love is something I treasure endlessly. I hope we continue building beautiful memories together, supporting and cherishing each other every step of the way.<br><br>Yours,<br>Sam" 
+            },
+            'Yellow': { 
+                img: 'Mars Flower Bouquet _ Yellow Flower.jpg', 
+                text: "My Dearest Bishu,<br><br>On this Rose Day, I give you this yellow rose as a symbol of respect, care, and the bond we share. Today made me realize I may be giving more than I receive, and it left me feeling undervalued and a little distant.<br><br>I admire your heart, your kindness, and the person you are, and I hope you understand how important it is for us to nurture our relationship with honesty, understanding, and mutual care. I want us to share moments where both of us feel cherished, heard, and appreciated. May this yellow rose remind you not just of my care for you, but also of my hope that we grow together with respect, trust, and deeper connection.<br><br>Yours,<br>Sam" 
+            },
+            'Pink': { 
+                img: 'Plush Pink.jpg', 
+                text: "Hey Bishu,<br><br>Happy Rose Day! I give you this pink rose to show my admiration for you and all the joy you bring into my life. Today, I felt disappointed when we couldn’t spend time together, and it made me feel a little unappreciated and distant.<br><br>I admire your laugh, your courage, and the way you light up the people around you. I trust you with my heart and hope this rose reminds you how much I care, and how I want us to cherish each other equally. I hope we can make space for more shared moments, words, and memories, because our bond means so much to me.<br><br>Yours,<br>Sam" 
+            }
+        };
+
+        function chooseRose(color) {
+            document.getElementById('roseTitle').innerText = color + " Roses";
+            document.getElementById('bouquetDisplay').src = roseData[color].img;
+            document.getElementById('letterBody').innerHTML = roseData[color].text;
+            navigateTo('bouquetSection');
+        }
+
+        function openEnvelope() {
+            const wrapper = document.getElementById('envWrapper');
+            if(!wrapper.classList.contains('open')) {
+                wrapper.classList.add('open');
+                // Small delay before showing the final button
+                setTimeout(() => {
+                    document.getElementById('navThankYou').classList.remove('hidden');
+                }, 800);
+            }
+        }
+    </script>
+</body>
+</html>
