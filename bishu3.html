@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight KTM-SCUN | Sam & Bishu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --sky: #f0f4f8;
+            --accent: #d4a5a5;
+            --text: #2d3436;
+            --glass: rgba(255, 255, 255, 0.9);
+            --soft-pink: #fce4ec;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: var(--sky); color: var(--text); overflow: hidden; }
+
+        .screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: all 0.5s ease-in-out; padding: 20px; text-align: center;
+        }
+        .hidden { opacity: 0; pointer-events: none; transform: translateY(20px); }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            padding: 35px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            max-width: 550px; width: 100%;
+            border: 1px solid white;
+            position: relative;
+        }
+
+        h1 { font-family: 'Montserrat', sans-serif; font-size: 1.8rem; margin-bottom: 15px; text-transform: uppercase; }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px; border: none; border-radius: 12px;
+            background: var(--text); color: white;
+            font-weight: 600; cursor: pointer; transition: 0.3s;
+            margin: 8px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn:hover { background: var(--accent); transform: translateY(-2px); }
+        
+        .btn-back {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.05); color: var(--text);
+            padding: 8px 15px; font-size: 0.7rem; border-radius: 8px;
+            z-index: 10;
+        }
+
+        /* Map & Progress */
+        #map { width: 100%; height: 280px; border-radius: 16px; margin: 20px 0; }
+        .progress-container { width: 100%; background: #dfe6e9; height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--accent); width: 0%; transition: 0.1s; }
+
+        /* Envelope Logic */
+        .envelope {
+            width: 200px; height: 130px; background: white;
+            border: 2px dashed var(--accent); margin: 30px auto;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative; transition: 0.3s;
+        }
+        .envelope:hover { transform: scale(1.05); background: var(--soft-pink); }
+        .envelope::after { content: 'OPEN LETTER'; font-size: 0.6rem; font-weight: 800; color: var(--accent); letter-spacing: 1px; }
+
+        /* Letter Styling */
+        .letter-text {
+            text-align: left; line-height: 1.7; font-size: 1rem; color: #444;
+            max-height: 50vh; overflow-y: auto; padding-right: 10px;
+        }
+        .letter-text b { color: var(--accent); font-weight: 700; }
+
+        /* Hamper Image */
+        .hamper-img {
+            width: 100%; max-width: 300px; border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px;
+        }
+
+        #no-btn { position: relative; transition: 0.1s; }
+    </style>
+</head>
+<body>
+
+    <div class="screen" id="scr-1">
+        <div class="glass-card">
+            <p style="font-size: 0.7rem; letter-spacing: 3px; font-weight: 800; color: var(--accent);">PRE-FLIGHT CHECK</p>
+            <h1 style="margin-top: 10px;">Hi, My Bishu!</h1>
+            <p>I am your flight attendant, Sam. Hope you are doing well and enjoy this trip to the fullest!</p>
+            <p style="margin-top: 15px; opacity: 0.5; font-style: italic; font-size: 0.9rem;">*laughter noises*</p>
+            <button class="btn" onclick="next(2)">Board Flight ✈️</button>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="scr-2">
+        <button class="btn btn-back" onclick="next(1)">← Back</button>
+        <div class="glass-card" style="max-width: 700px;">
+            <h1>KTM to SCUN</h1>
+            <div id="map"></div>
+            <div class="progress-container"><div class="progress-bar" id="p-bar"></div></div>
+            <p id="flight-status" style="margin-top: 15px; font-weight: 600; font-size: 0.9rem;">Checking Weather...</p>
+            <button class="btn hidden" id="land-btn" onclick="next(3)">Arrive at Destination 🛬</button>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="scr-3">
+        <button class="btn btn-back" onclick="next(2)">← Back</button>
+        <div class="glass-card">
+            <h1>Surprise for you!</h1>
+            <p style="margin-bottom: 20px;">You've received a landing gift at Scunthorpe</p>
+            <img src="https://i.pinimg.com/originals/8a/05/26/8a0526e85e5057a6296df447936a5a0d.gif" class="hamper-img" alt="Propose Day Hamper">
+            <p style="font-size: 0.8rem; opacity: 0.7;">Wait, there is a letter hidden inside...</p>
+            <button class="btn" onclick="next(4)">Check the Luggage 💌</button>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="scr-4">
+        <button class="btn btn-back" onclick="next(3)">← Back</button>
+        <div class="glass-card">
+            <h1>A Private Note</h1>
+            <p>This one is just for your eyes, Bishu.</p>
+            <div class="envelope" onclick="next(5)"></div>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="scr-5">
+        <button class="btn btn-back" onclick="next(4)">← Back</button>
+        <div class="glass-card">
+            <div class="letter-text">
+                <p><b>My Love,</b></p><br>
+                <p>Even though there are miles between us, every moment with you feels close.</p>
+                <p>Every laugh we share, every late-night chat, every silly little inside joke… they all make my heart skip just thinking about you.</p><br>
+                <p>I love how you make ordinary days feel magical, and how even distance can’t dull the way I feel about you. From Kathmandu to Scunthorpe, my heart is always flying to you — faster than any plane.</p><br>
+                <p>I dream about the day I can hold your hand instead of texting you, but until then, I promise to keep choosing you every single day, laughing with you, dreaming with you, and loving you with all that I am.</p><br>
+                <p>You are my favorite part of every day, my sweetest hello, and my most beautiful future.</p><br>
+                <p><b>Always yours, Sam</b></p>
+            </div>
+            
+            <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px;">
+                <p style="font-weight: 800; font-size: 0.8rem; letter-spacing: 1px; margin-bottom: 10px;">WILL YOU CONTINUE THIS JOURNEY WITH ME?</p>
+                <button class="btn" onclick="finish('Yes!')">YES 💕</button>
+                <button class="btn" onclick="finish('Always!')">ALWAYS 🥺</button>
+                <button class="btn" id="no-btn" onmouseover="moveNo()">NO 😤</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="screen hidden" id="scr-6">
+        <div class="glass-card">
+            <h1 style="font-size: 3rem;">YAY! ❤️</h1>
+            <p>The best landing ever. I love you, Bishu!</p>
+            <button class="btn" style="margin-top: 20px;" onclick="next(1)">Restart Trip 🔄</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        function next(num) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById('scr-' + num).classList.remove('hidden');
+            if(num === 2) startFlight();
+        }
+
+        let mapInitialized = false;
+        function startFlight() {
+            if(mapInitialized) return;
+            mapInitialized = true;
+            
+            const map = L.map('map', {zoomControl: false, attributionControl: false}).setView([35, 45], 3);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+
+            const ktm = [27.7172, 85.3240];
+            const scun = [53.5861, -0.6515];
+            
+            L.marker(ktm).addTo(map);
+            L.marker(scun).addTo(map);
+
+            const planeIcon = L.divIcon({html: '✈️', className: '', iconSize: [25, 25]});
+            const plane = L.marker(ktm, {icon: planeIcon}).addTo(map);
+
+            let progress = 0;
+            const timer = setInterval(() => {
+                progress += 0.5;
+                let lat = ktm[0] + (scun[0] - ktm[0]) * (progress/100);
+                let lng = ktm[1] + (scun[1] - ktm[1]) * (progress/100);
+                plane.setLatLng([lat, lng]);
+                document.getElementById('p-bar').style.width = progress + '%';
+                document.getElementById('flight-status').innerText = `Flying over the miles... ${Math.round(progress)}%`;
+
+                if(progress >= 100) {
+                    clearInterval(timer);
+                    document.getElementById('flight-status').innerText = "Touchdown in Scunthorpe!";
+                    document.getElementById('land-btn').classList.remove('hidden');
+                }
+            }, 50);
+        }
+
+        function moveNo() {
+            const btn = document.getElementById('no-btn');
+            btn.style.position = 'fixed';
+            btn.style.left = Math.random() * 70 + 15 + '%';
+            btn.style.top = Math.random() * 70 + 15 + '%';
+        }
+
+        function finish(msg) {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            setTimeout(() => { next(6); }, 600);
+        }
+    </script>
+</body>
+</html>
